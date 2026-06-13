@@ -1,198 +1,171 @@
-
-
-\---
-
-
-
-\# README - TripPlanner F#
-
-
-
-Tu trzeba mocniej podkreślić F#.
-
-
-
-```md
-
-\# TripPlanner - F# + Blazor
-
-
+# TripPlanner - F# + Blazor
 
 Functional implementation of a travel planning and expense management system built with F#, Blazor and PostgreSQL.
 
-
-
-\## Overview
-
-
+## Overview
 
 TripPlanner F# is an alternative implementation of the travel management system where the business logic and domain modeling are implemented using functional programming principles.
 
+The application allows users to manage trips, track expenses, organize travel schedules and discover destinations through OpenStreetMap integration.
 
+The project demonstrates how functional programming can be applied to real-world business applications within the .NET ecosystem.
 
-The project demonstrates how functional programming can be applied to real-world business applications in the .NET ecosystem.
+---
 
+## Features
 
+- Trip management
+- Expense tracking
+- Cost aggregation and reporting
+- Travel scheduling
+- Trip status management
+- OpenStreetMap integration
+- Tourist attraction search
+- Destination inspiration generator
+- PostgreSQL persistence
+- Responsive Blazor UI
 
-\## Features
+---
 
+## Functional Concepts
 
+This project focuses on applying functional programming concepts in a business application:
 
-\- Trip management
+- Immutable domain models
+- Records
+- Discriminated Unions
+- Pattern Matching
+- Functional validation
+- Functional business workflows
+- Separation of domain logic from presentation
 
-\- Expense tracking
+---
 
-\- Cost aggregation
+## Architecture
 
-\- Travel scheduling
+The application is structured into multiple layers:
 
-\- OpenStreetMap integration
+### Presentation Layer
+- Blazor UI
+- Forms and user interaction
+- Dashboard and travel management pages
 
-\- Tourist attraction search
+### Domain Layer
+- Functional domain models
+- Validation rules
+- Business workflows
 
-\- Destination inspiration generator
+### Infrastructure Layer
+- PostgreSQL persistence
+- Data access
+- OpenStreetMap integration
 
-\- Functional domain modeling
+---
 
-\- PostgreSQL persistence
+## Technologies
 
+- F#
+- ASP.NET Core
+- Blazor
+- PostgreSQL
+- OpenStreetMap
+- REST APIs
+- Functional Programming
 
+---
 
-\## Functional Concepts
+## Screenshots
 
+### Dashboard
 
+![Dashboard](docs/dashboard.png)
 
-\- Immutable domain models
+### Create Trip
 
-\- Records
+![Create Trip](docs/add-trip.png)
 
-\- Discriminated Unions
+### Trips List
 
-\- Pattern Matching
+![Trips List](docs/trips.png)
 
-\- Functional validation
+### Expense Management
 
-\- Pure business logic functions
+![Expense Management](docs/costs.png)
 
+---
 
+## OpenStreetMap Integration
 
-\## Architecture
+TripPlanner integrates with OpenStreetMap to provide location-based travel planning features.
 
+Capabilities include:
 
+- Destination search
+- Tourist attraction discovery
+- Travel inspiration suggestions
+- Location visualization
+- External API integration
 
-\- Blazor UI
+---
 
-\- Functional Domain Layer
+## What This Project Demonstrates
 
-\- Application Layer
+- Functional programming in .NET
+- Domain modeling using F#
+- Immutable business objects
+- Business application architecture
+- PostgreSQL integration
+- OpenStreetMap integration
+- Full-stack web development with Blazor
 
-\- PostgreSQL Persistence
+---
 
-\- OpenStreetMap Integration
+## Comparison With C# Version
 
+This project was created alongside a C# implementation of TripPlanner to compare different approaches to business application development.
 
+### C# Version
+- Object-Oriented Programming
+- Entity Framework Core
+- Traditional layered architecture
 
-\## Technologies
+### F# Version
+- Functional Programming
+- Immutable domain models
+- Pattern matching
+- Functional business workflows
 
+---
 
+## Running Locally
 
-\- F#
+### Requirements
 
-\- ASP.NET Core
+- .NET 9 SDK
+- PostgreSQL
 
-\- Blazor
-
-\- PostgreSQL
-
-\- OpenStreetMap
-
-\- Functional Programming
-
-\- REST APIs
-
-
-
-\## Screenshots
-
-
-
-\### Dashboard
-
-
-
-!\[Dashboard](docs/dashboard.png)
-
-
-
-\### Create Trip
-
-
-
-!\[Create Trip](docs/add-trip.png)
-
-
-
-\### Trips List
-
-
-
-!\[Trips](docs/trips.png)
-
-
-
-\### Expense Management
-
-
-
-!\[Expenses](docs/costs.png)
-
-
-
-\## C# vs F# Comparison
-
-
-
-This project was created as an alternative implementation of the C# version to compare:
-
-
-
-\- Object-Oriented Programming
-
-\- Functional Programming
-
-\- Domain Modeling approaches
-
-\- Validation strategies
-
-\- Business Logic organization
-
-
-
-\## What this project demonstrates
-
-
-
-\- Functional programming in production-style applications
-
-\- Immutable business models
-
-\- Domain modeling with F#
-
-\- OpenStreetMap integration
-
-\- Full-stack .NET development
-
-
-
-\## Running locally
-
-
+### Restore packages
 
 ```bash
-
 dotnet restore
+```
 
+### Build
+
+```bash
 dotnet build
+```
 
+### Run
+
+```bash
 dotnet run
+```
 
+---
+
+## Author
+
+**Michał Łuczak**
+
+Software Engineer focused on .NET, Software Architecture, Functional Programming and Business Systems.
