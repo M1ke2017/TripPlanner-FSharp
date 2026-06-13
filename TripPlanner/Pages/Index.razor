@@ -1,0 +1,105 @@
+﻿@page "/"
+@using static TripPlanner.Pages.ListTrips
+@inject HttpClient Http
+@inject NavigationManager Nav
+<link rel="stylesheet" href="css/trip.css">
+<div class="home">
+    <section>
+        <div>
+            <h1>TripPlanner</h1>
+            <p>Planuj wycieczki, kontroluj koszty i odkrywaj atrakcje w jednym miejscu.</p>
+
+            <div>
+                <button class="btn-add" @onclick="GoToAdd">Dodaj wycieczkę</button>
+                <button class="btn btn--secondary" @onclick="GoToList">Lista wycieczek</button>
+                <button class="btn btn--ghost" @onclick="GoToAttractionsInspo">Losowa inspiracja atrakcji</button>
+            </div>
+
+            <div class="searchbar">
+                <input placeholder="Wpisz miasto, np. Ateny, Grecja"
+                       @bind="place" @bind:event="oninput" />
+                <button class="btn" @onclick="GoToAttractionsInspo">Szukaj atrakcji</button>
+            </div>
+        </div>
+    </section>
+
+    @if (trips is null)
+    {
+        <section class="card">
+            <p>Ładowanie…</p>
+        </section>
+    }
+    else if (trips.Length == 0)
+    {
+        <section class="card">
+            <h3>Nie masz jeszcze żadnych wycieczek</h3>
+            <p>Rozpocznij od dodania pierwszej.</p>
+            <button class="btn" @onclick="GoToAdd">Dodaj wycieczkę</button>
+        </section>
+    }
+    else
+    {
+        <section class="card">
+            <article>
+                <div>Najbliższe wycieczki</div>
+                @if (!UpcomingTrips.Any())
+                {
+                    <p>Brak nadchodzących wyjazdów.</p>
+                }
+                else
+                {
+                    <ul>
+                        @foreach (var t in UpcomingTrips)
+                        {
+                            <li>
+                                <div>
+                                    <div>@t.destination</div>
+                                    <div>@t.startDate.ToShortDateString() – @t.endDate.ToShortDateString()</div>
+                                    @if (t.status is not null)
+                                    {
+                                        <div>@t.status.name</div>
+                                    }
+                                </div>
+                                <div>
+                                    <button class="btn-cost" @onclick="() => GoToCosts(t.id)">Koszty</button>
+                                    <button class="btn-edit" @onclick="() => GoToEdit(t.id)">Edytuj</button>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </article>
+
+        </section>
+    }
+</div>
+
+@code {
+    Trip[]? trips;
+    string place = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        trips = await Http.GetFromJsonAsync<Trip[]>("/api/trip");
+    }
+
+    IEnumerable<Trip> UpcomingTrips =>
+        (trips ?? Array.Empty<Trip>())
+            .Where(t => t.startDate.Date >= DateTime.Today)
+            .OrderBy(t => t.startDate)
+            .Take(3);
+
+    void GoToAdd() => Nav.NavigateTo("/add-trip");
+    void GoToList() => Nav.NavigateTo("/list-trips"); 
+    void GoToEdit(int id) => Nav.NavigateTo($"/edit-trip/{id}");
+    void GoToCosts(int id) => Nav.NavigateTo($"/trip/{id}/costs");
+
+    void SearchAttractions()
+    {
+        if (!string.IsNullOrWhiteSpace(place))
+            Nav.NavigateTo($"/attractions?place={Uri.EscapeDataString(place)}");
+    }
+
+    void GoToAttractionsInspo()
+        => Nav.NavigateTo("/attractions?place=" + Uri.EscapeDataString("Ateny, Grecja"));
+}

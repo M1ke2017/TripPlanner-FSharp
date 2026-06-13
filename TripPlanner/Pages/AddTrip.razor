@@ -1,0 +1,83 @@
+﻿@page "/add-trip"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Net.Http.Json
+
+<link rel="stylesheet" href="css/trip.css">
+<div class="home">
+<h3>Dodaj wycieczkę</h3>
+
+@if (statuses is null)
+{
+    <p>Ładowanie statusów...</p>
+}
+else
+{
+    <div class="card">
+    <EditForm Model="trip" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <p>Cel: <InputText @bind-Value="trip.Destination" /></p>
+        <p>Opis: <InputText @bind-Value="trip.Description" /></p>
+        <p>Data rozpoczęcia: <InputDate TValue="DateTime" @bind-Value="trip.StartDate" /></p>
+        <p>Data zakończenia: <InputDate TValue="DateTime" @bind-Value="trip.EndDate" /></p>
+
+        <p>Status:
+            <select @bind="trip.StatusId">
+                @foreach (var status in statuses)
+                {
+                    <option value="@status.id">@status.name</option>
+                }
+            </select>
+        </p>
+        <div class="toolbar">
+        <button class="btn-save" type="submit">Zapisz</button>
+        <button class="btn-back" type="button" @onclick="@(() => Navigation.NavigateTo("/"))">Menu</button>
+        </div>
+    </EditForm>
+        </div>
+}
+</div>
+@code {
+
+    private Trip trip = new Trip();
+    private TripStatus[]? statuses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        trip.StartDate = DateTime.UtcNow;
+        trip.EndDate = DateTime.UtcNow.AddDays(7);
+        statuses = await Http.GetFromJsonAsync<TripStatus[]>("https://localhost:7198/api/trip/statuses");
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await Http.PostAsJsonAsync("https://localhost:7198/api/trip", trip);
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/list-trips");
+        }
+        else
+        {
+            
+        }
+    }
+
+    public class TripStatus
+    {
+        public int id { get; set; }
+        public string name { get; set; } = string.Empty;
+    }
+
+    public class Trip
+    {
+        public int Id { get; set; }
+        public string Destination { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int StatusId { get; set; }
+    }
+}

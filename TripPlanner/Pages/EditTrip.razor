@@ -1,0 +1,87 @@
+﻿@page "/edit-trip/{id:int}"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Net.Http.Json
+<link rel="stylesheet" href="css/trip.css">
+<div class="home">
+<h3>Edytuj wycieczkę</h3>
+
+@if (trip == null || statuses == null)
+{
+    <p>Ładowanie danych...</p>
+}
+else
+{
+        <div class="card">
+    <EditForm Model="trip" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <p>Cel: <InputText @bind-Value="trip.Destination" /></p>
+        <p>Opis: <InputText @bind-Value="trip.Description" /></p>
+        <p>Data rozpoczęcia: <InputDate @bind-Value="trip.StartDate" /></p>
+        <p>Data zakończenia: <InputDate @bind-Value="trip.EndDate" /></p>
+
+        <p>
+            Status:
+            <select @bind="trip.StatusId">
+                @foreach (var status in statuses)
+                {
+                    <option value="@status.Id">@status.Name</option>
+                }
+            </select>
+        </p>
+        <div class="toolbar">
+        <button class="btn-save" type="submit">Zapisz</button>
+        <button class="btn-back" type="button" @onclick="@(() => Navigation.NavigateTo("/"))">Menu</button>
+        </div>
+    </EditForm>
+        </div>
+}
+</div>
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private Trip? trip;
+    private TripStatus[]? statuses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        trip = await Http.GetFromJsonAsync<Trip>($"https://localhost:7198/api/trip/{id}");
+        statuses = await Http.GetFromJsonAsync<TripStatus[]>("https://localhost:7198/api/trip/statuses");
+        trip.StartDate = DateTime.UtcNow;
+        trip.EndDate = DateTime.UtcNow.AddDays(7);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await Http.PutAsJsonAsync($"https://localhost:7198/api/trip/{id}", trip);
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/list-trips");
+        }
+        else
+        {
+            Console.WriteLine("Błąd zapisu");
+        }
+    }
+
+    public class Trip
+    {
+        public int Id { get; set; }
+        public string Destination { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int StatusId { get; set; }
+    }
+
+    public class TripStatus
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,93 @@
+﻿@page "/list-trips"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/trip.css">
+<div class="home">
+<h3>Lista wycieczek</h3>
+
+@if (trips == null)
+{
+    <p><em>Ładowanie...</em></p>
+}
+else
+{
+    <div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Cel</th>
+                <th>Opis</th>
+                <th>Od</th>
+                <th>Do</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var trip in trips)
+            {
+                <tr>
+                    <td>@trip.destination</td>
+                    <td>@trip.description</td>
+                    <td>@trip.startDate.ToShortDateString()</td>
+                    <td>@trip.endDate.ToShortDateString()</td>
+                    <td>@trip.status?.name</td>
+                    <td class="td-actions">
+                        <button class="btn-cost" @onclick="() => GoToCosts(trip.id)">Koszty</button>
+                        <button class="btin-edit" @onclick="() => GoToEdit(trip.id)">Edytuj</button>
+                        <button class="btn--danger" @onclick="() => DeleteTrip(trip.id)">Usuń</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+}
+    <div class="toolbar-menu">
+        <button class="btn-ls" @onclick="GoToAdd">Dodaj wycieczkę</button>
+        <button class="btn-back" type="button" @onclick="@(() => Navigation.NavigateTo("/"))">Menu</button>
+    </div>
+</div>
+@code {
+    Trip[]? trips;
+
+    protected override async Task OnInitializedAsync()
+    {
+        trips = await Http.GetFromJsonAsync<Trip[]>("api/trip");
+    }
+
+    public class TripStatus
+    {
+        public int id { get; set; }
+        public string name { get; set; } = string.Empty;
+    }
+
+    public class Trip
+    {
+        public int id { get; set; }
+        public string destination { get; set; } = string.Empty;
+        public string description { get; set; } = string.Empty;
+        public DateTime startDate { get; set; }
+        public DateTime endDate { get; set; }
+        public int statusId { get; set; }
+        public TripStatus? status { get; set; }
+    }
+
+
+    private async Task DeleteTrip(int id)
+    {
+        var response = await Http.DeleteAsync($"https://localhost:7198/api/trip/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            trips = trips.Where(t => t.id != id).ToArray(); 
+        }
+        else
+        {
+            // Obsługa błędów
+        }
+    }
+
+    private void GoToCosts(int id) => Navigation.NavigateTo($"/trip/{id}/costs");
+    private void GoToEdit(int id) => Navigation.NavigateTo($"/edit-trip/{id}");
+    private void GoToAdd() => Navigation.NavigateTo($"/add-trip/");
+}

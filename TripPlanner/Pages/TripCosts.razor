@@ -1,0 +1,235 @@
+﻿@page "/trip/{id:int}/costs"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+<link rel="stylesheet" href="css/trip.css">
+<div class="home">
+<h3>Koszty wycieczki</h3>
+
+<div>
+    Waluta:
+    <select @bind="currency" @bind:after="Reload">
+        @foreach (var c in currencies)
+        {
+            <option value="@c">@c</option>
+        }
+    </select>
+</div>
+
+@if (loading)
+{
+    <p>Ładowanie...</p>
+}
+else
+{
+    <p><b>Suma:</b> @summary.total @summary.currency</p>
+    <div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Kategoria</th>
+                <th>Kwota</th>
+                <th>Waluta</th>
+                <th>Przeliczona (@currency)</th>
+                <th>Opis</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (costs.Count == 0)
+            {
+                <tr><td colspan="7">Brak pozycji.</td></tr>
+            }
+            else
+            {
+                @foreach (var c in costs)
+                {
+                    <tr>
+                        <td>@c.SpentAt.ToString("yyyy-MM-dd")</td>
+                        <td>@c.Category</td>
+                        <td>@c.Amount.ToString("0.00")</td>
+                        <td>@c.Currency</td>
+                        <td>@(c.AmountPln.HasValue? c.AmountPln.Value.ToString("0.00") : "-")</td>
+                        <td>@c.Note</td>
+                        <td><button class="btn--danger" @onclick="() => DeleteCost(c.Id)">Usuń</button></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+        </div>
+    <hr />
+    
+    <h4>Dodaj koszt</h4>
+    <div class="card">
+    <EditForm Model="model" OnValidSubmit="AddCost">
+        <DataAnnotationsValidator />
+        <div>
+            <div>
+                <label>Kategoria</label>
+                <InputText class="form-control" @bind-Value="model.Category" />
+                <ValidationMessage For="() => model.Category" />
+            </div>
+            <div>
+                <label>Kwota</label>
+                <InputNumber class="form-control" @bind-Value="model.Amount" />
+                <ValidationMessage For="() => model.Amount" />
+            </div>
+            <div>
+                <label>Waluta</label>
+                <InputText class="form-control" @bind-Value="model.Currency" />
+                <ValidationMessage For="() => model.Currency" />
+            </div>
+        </div>
+        <div>
+            <div>
+                <label>Data</label>
+                <InputDate class="form-control" @bind-Value="model.SpentAt" />
+                <ValidationMessage For="() => model.SpentAt" />
+            </div>
+            <div>
+                <label>Opis</label>
+                <InputText class="form-control" @bind-Value="model.Note" />
+            </div>
+        </div>
+                <div class="toolbar">
+                    <button class="btn-save" type="submit">Dodaj</button>
+                    <button class="btn-back" type="button" @onclick="@(() => Navigation.NavigateTo("/"))">Menu</button>
+                </div>
+    </EditForm>
+        </div>
+}
+</div>
+@code {
+    
+    [Parameter] public int id { get; set; }
+
+   
+    bool loading;
+    bool busy;
+    string? error;
+
+  
+    List<TripCostVm> costs = new();
+    SummaryVm summary = new();
+
+    
+    readonly string[] currencies = new[] { "PLN", "EUR", "USD", "GBP", "CZK" };
+    string currency = "PLN";
+
+    
+    NewCost model = new() { Currency = "PLN", SpentAt = DateTime.Today };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Load();
+    }
+
+    private async Task Reload()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+           
+            var rows = await Http.GetFromJsonAsync<TripCostVm[]>($"api/trip/{id}/costs?to={currency}");
+            costs = rows?.ToList() ?? new List<TripCostVm>();
+
+            summary.currency = currency;
+            summary.total = costs.Sum(c => c.AmountPln ?? 0m);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            costs.Clear();
+            summary.total = 0;
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task AddCost()
+    {
+        if (busy) return;
+        busy = true;
+
+        try
+        {
+            
+            var resp = await Http.PostAsJsonAsync($"api/trip/{id}/costs", new
+            {
+                category = model.Category,
+                amount = model.Amount,
+                currency = model.Currency,
+                spentAt = model.SpentAt,
+                note = string.IsNullOrWhiteSpace(model.Note) ? null : model.Note
+            });
+            resp.EnsureSuccessStatusCode();
+
+            
+            model = new NewCost { Currency = currency, SpentAt = DateTime.Today };
+            await Load();
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task DeleteCost(int costId)
+    {
+        if (busy) return;
+        busy = true;
+
+        try
+        {
+            var resp = await Http.DeleteAsync($"api/trip/{id}/costs/{costId}");
+            resp.EnsureSuccessStatusCode();
+            await Load();
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+  
+
+    public class TripCostVm
+    {
+        public int Id { get; set; }
+        public int TripId { get; set; }
+        public string Category { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Currency { get; set; } = "PLN";
+        public string? Note { get; set; }
+        public DateTime SpentAt { get; set; }
+        public decimal? AmountPln { get; set; }
+    }
+
+    public class SummaryVm
+    {
+        public decimal total { get; set; }
+        public string currency { get; set; } = "PLN";
+    }
+
+    public class NewCost
+    {
+        public string Category { get; set; } = "";
+        public decimal Amount { get; set; }
+        public string Currency { get; set; } = "PLN";
+        public DateTime SpentAt { get; set; } = DateTime.Today;
+        public string? Note { get; set; }
+    }
+}

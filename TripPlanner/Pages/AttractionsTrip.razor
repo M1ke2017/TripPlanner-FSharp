@@ -1,0 +1,93 @@
+﻿@page "/attractions"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+<link rel="stylesheet" href="css/trip.css">
+
+<div class="searchbar">
+<input @bind="place" placeholder="Miasto, kraj" />
+<button @onclick="OnSearch">Szukaj</button>
+<button class="btn-back" type="button" @onclick="@(() => Navigation.NavigateTo("/"))">Menu</button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <p>@error</p>
+}
+else if (busy)
+{
+    <p>Ładowanie…</p>
+}
+else if (items is not null && items.Length > 0)
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Nazwa</th>
+                <th>Obiekt</th>
+                <th>Współrzędne</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in items)
+            {
+                <tr>
+                    <td>@p.Name</td>
+                    <td>@p.Category</td>
+                    <td>@FormatCoord(p.Lat, p.Lon)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (searchedOnce)
+{
+    <p>Brak wyników.</p>
+}
+
+@code {
+    string place = "Ateny, Grecja";
+    PoiDto[]? items;
+    bool busy;
+    bool searchedOnce;
+    string? error;
+
+    public class PoiDto
+    {
+        public string Name { get; set; } = "";
+        public string Category { get; set; } = "";
+        public double Lat { get; set; }
+        public double Lon { get; set; }
+    }
+
+    async Task OnSearch()
+    {
+        try
+        {
+            error = null;
+            busy = true;
+            searchedOnce = true;
+
+            if (string.IsNullOrWhiteSpace(place))
+            {
+                items = Array.Empty<PoiDto>();
+                return;
+            }
+
+            var url = $"/api/attractions?place={Uri.EscapeDataString(place)}";
+            items = await Http.GetFromJsonAsync<PoiDto[]>(url);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            items = Array.Empty<PoiDto>();
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    static string FormatCoord(double lat, double lon)
+        => $"{lat:0.000000}, {lon:0.000000}";
+}

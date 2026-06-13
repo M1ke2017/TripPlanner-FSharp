@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16
+    container_name: tripplanner-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres12
+      POSTGRES_DB: travelplannerdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d travelplannerdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: tripplanner-fsharp:latest
+    container_name: tripplanner-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=db;Database=travelplannerdb;Username=postgres;Password=postgres12
+    ports:
+      - "5000:8080"
+
+volumes:
+  pgdata:
