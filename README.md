@@ -90,7 +90,7 @@ The application is structured into multiple layers:
 
 ### Expense Management
 
-![Expense Management](docs/costs-trip.png)
+![Expense Management](docs/costs-trips.png)
 
 ---
 
