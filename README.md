@@ -82,7 +82,7 @@ The application is structured into multiple layers:
 
 ### Create Trip
 
-![Create Trip](docs/add-trip.png)
+![Create Trip](docs/add-trips.png)
 
 ### Trips List
 
@@ -90,7 +90,7 @@ The application is structured into multiple layers:
 
 ### Expense Management
 
-![Expense Management](docs/costs.png)
+![Expense Management](docs/costs-trip.png)
 
 ---
 
